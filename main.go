@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +12,16 @@ import (
 )
 
 func stub(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	if r.Method == "POST" {
+		log.Println("Request POST request.")
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Println("Error reading body")
+		} else {
+			log.Println(string(body))
+		}
+	}
+
 	fmt.Fprintf(w, "This is a stub call, it doesn't work.")
 }
 
