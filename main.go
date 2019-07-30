@@ -77,7 +77,7 @@ func main() {
 	log.Println("Listening on", hostname)
 
 	if tlsReady {
-		log.Fatal(http.ListenAndServeTLS(hostname, *cert, *key, nil))
+		log.Fatal(http.ListenAndServeTLS(hostname, *cert, *key, router))
 	} else {
 		log.Fatal(http.ListenAndServe(hostname, router))
 	}
