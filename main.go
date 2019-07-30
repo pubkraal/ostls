@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/julienschmidt/httprouter"
+	_ "github.com/lib/pq"
 	"github.com/pubkraal/ostls/api"
 )
 
@@ -27,10 +28,12 @@ func stub(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 func main() {
+	dsn := flag.String("dsn", "postgres://localhost/ostls", "the database DSN")
 	cert := flag.String("cert", "./cert.pem", "valid TLS certificate for hosting https")
 	key := flag.String("key", "./key.pem", "valid TLS Private key for hosting https")
 	port := flag.Int("port", 0, "the port to host on. Leave empty to default to 80 or 443 depending on TLS config")
 	host := flag.String("host", "", "the host to listen on, leave empty for all interfaces.")
+	// secret := flag.String("secret", "", "the file in which the shared secret is stored.")
 	flag.Parse()
 
 	if *port < 0 || *port > 65535 {
@@ -47,6 +50,9 @@ func main() {
 		tlsReady = false
 	}
 
+	dbHandle := api.InitializeDatabase(*dsn)
+	defer dbHandle.Close()
+
 	router := httprouter.New()
 
 	// Normal route
@@ -58,6 +64,7 @@ func main() {
 	// server. Implementation will require more attention obviously.
 	// https://github.com/osquery/osquery/blob/master/tools/tests/test_http_server.py
 	router.GET("/api/config", stub)
+	router.POST("/api/config", api.Config)
 	router.POST("/api/enroll", api.Enroll)
 	router.POST("/api/log", stub)
 	router.POST("/api/distributed-read", stub)
