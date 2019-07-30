@@ -14,8 +14,13 @@ import (
 )
 
 func stub(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	log.Println(r.Method, r.URL)
+	fmt.Fprintf(w, "{}")
+}
+
+func stubWriter(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	log.Println(r.Method, r.URL)
 	if r.Method == "POST" {
-		log.Println("Request POST request.")
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Println("Error reading body")
@@ -24,7 +29,7 @@ func stub(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		}
 	}
 
-	fmt.Fprintf(w, "This is a stub call, it doesn't work.")
+	fmt.Fprintf(w, "{}")
 }
 
 func main() {
@@ -66,8 +71,8 @@ func main() {
 	router.GET("/api/config", stub)
 	router.POST("/api/config", api.Config)
 	router.POST("/api/enroll", api.Enroll)
-	router.POST("/api/log", stub)
-	router.POST("/api/distributed-read", stub)
+	router.POST("/api/log", stubWriter)
+	router.POST("/api/distributed-read", stubWriter)
 	router.POST("/api/distributed-write", stub)
 	router.POST("/api/test-read-requests", stub)
 	router.POST("/api/carve-init", stub)
