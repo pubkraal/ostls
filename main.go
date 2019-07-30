@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/pubkraal/ostls/api"
 )
 
 func stub(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -57,7 +58,7 @@ func main() {
 	// server. Implementation will require more attention obviously.
 	// https://github.com/osquery/osquery/blob/master/tools/tests/test_http_server.py
 	router.GET("/api/config", stub)
-	router.POST("/api/enroll", stub)
+	router.POST("/api/enroll", api.Enroll)
 	router.POST("/api/log", stub)
 	router.POST("/api/distributed-read", stub)
 	router.POST("/api/distributed-write", stub)
