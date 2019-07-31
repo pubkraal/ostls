@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -50,9 +49,8 @@ func AcceptLog(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			}
 
 			req := esapi.IndexRequest{
-				Index:      logReq.LogType,
-				DocumentID: uuid.Must(uuid.NewRandom()).String(),
-				Body:       strings.NewReader(string(dataBlob)),
+				Index: logReq.LogType,
+				Body:  strings.NewReader(string(dataBlob)),
 			}
 
 			_, err = req.Do(context.Background(), esHandle)
