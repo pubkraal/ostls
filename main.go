@@ -11,6 +11,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	_ "github.com/lib/pq"
 	"github.com/pubkraal/ostls/api"
+	"github.com/pubkraal/ostls/util"
 )
 
 type Logger struct {
@@ -40,12 +41,14 @@ func stubWriter(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 func main() {
-	dsn := flag.String("dsn", "postgres://localhost/ostls", "the database DSN")
+	defaultDb := util.FirstNonEmpty(os.Getev("OSTLS_DSN"), "postgres://localhost/ostls")
+	defaultEs := util.FirstNonEmpty(os.Getenv("OSTLS_ES"), "https://localhost:9200/")
+	dsn := flag.String("dsn", defaultDb, "the database DSN")
+	es := flag.String("es", defaultEs, "the connectstring for elasticsearch")
 	cert := flag.String("cert", "./cert.pem", "valid TLS certificate for hosting https")
 	key := flag.String("key", "./key.pem", "valid TLS Private key for hosting https")
 	port := flag.Int("port", 0, "the port to host on. Leave empty to default to 80 or 443 depending on TLS config")
 	host := flag.String("host", "", "the host to listen on, leave empty for all interfaces.")
-	es := flag.String("es", "", "the connectstring for elasticsearch")
 	// secret := flag.String("secret", "", "the file in which the shared secret is stored.")
 	flag.Parse()
 

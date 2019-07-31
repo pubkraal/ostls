@@ -31,3 +31,15 @@ func ExtractNodeKey(r *http.Request) (string, error) {
 		return "", NoNodeKeyErr
 	}
 }
+
+func FirstNonEmpty(strs ...string) string {
+	for _, str := range strs {
+		if str != "" {
+			return str
+		}
+	}
+
+	// None of the arguments qualified! Since they're all empty, let's
+	// just return an empty string.
+	return ""
+}
