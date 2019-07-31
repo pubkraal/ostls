@@ -13,13 +13,20 @@ import (
 	"github.com/pubkraal/ostls/api"
 )
 
+type Logger struct {
+	handler http.Handler
+}
+
+func (l Logger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.RemoteAddr, r.Proto, r.Method, r.URL, r.Header.Get("User-Agent"))
+	l.handler.ServeHTTP(w, r)
+}
+
 func stub(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	log.Println(r.Method, r.URL)
 	fmt.Fprintf(w, "{}")
 }
 
 func stubWriter(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	log.Println(r.Method, r.URL)
 	if r.Method == "POST" {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -68,12 +75,14 @@ func main() {
 	// API routes for the client taken from the facebook test http
 	// server. Implementation will require more attention obviously.
 	// https://github.com/osquery/osquery/blob/master/tools/tests/test_http_server.py
-	router.GET("/api/config", stub)
 	router.POST("/api/config", api.Config)
 	router.POST("/api/enroll", api.Enroll)
 	router.POST("/api/log", stubWriter)
-	router.POST("/api/distributed-read", stubWriter)
+	router.POST("/api/distributed-read", stub)
 	router.POST("/api/distributed-write", stub)
+
+	// Not implemented
+	router.GET("/api/config", stub)
 	router.POST("/api/test-read-requests", stub)
 	router.POST("/api/carve-init", stub)
 	router.POST("/api/carve-block", stub)
@@ -90,7 +99,7 @@ func main() {
 	log.Println("Listening on", hostname)
 
 	if tlsReady {
-		log.Fatal(http.ListenAndServeTLS(hostname, *cert, *key, router))
+		log.Fatal(http.ListenAndServeTLS(hostname, *cert, *key, Logger{router}))
 	} else {
 		log.Fatal(http.ListenAndServe(hostname, router))
 	}
