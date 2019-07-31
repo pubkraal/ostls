@@ -80,6 +80,16 @@ func Config(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
       "interval": 3600,
       "description": "System logins and logouts.",
       "removed": false
+    },
+    "chrome_extensions": {
+      "query": "SELECT * FROM users CROSS JOIN chrome_extensions USING (uid);",
+      "interval": 3600,
+      "description": "List installed Chrome Extensions for all users"
+    },
+    "safari_extensions": {
+      "query": "SELECT * FROM users CROSS JOIN safari_extensions USING (uid);",
+      "interval": 3600,
+      "description": "Safari browser extension details for all users."
     }
   },
   "decorators": {
