@@ -45,6 +45,7 @@ func main() {
 	key := flag.String("key", "./key.pem", "valid TLS Private key for hosting https")
 	port := flag.Int("port", 0, "the port to host on. Leave empty to default to 80 or 443 depending on TLS config")
 	host := flag.String("host", "", "the host to listen on, leave empty for all interfaces.")
+	es := flag.String("es", "", "the connectstring for elasticsearch")
 	// secret := flag.String("secret", "", "the file in which the shared secret is stored.")
 	flag.Parse()
 
@@ -64,6 +65,7 @@ func main() {
 
 	dbHandle := api.InitializeDatabase(*dsn)
 	defer dbHandle.Close()
+	api.InitializeElastic(*es)
 
 	router := httprouter.New()
 
@@ -77,7 +79,7 @@ func main() {
 	// https://github.com/osquery/osquery/blob/master/tools/tests/test_http_server.py
 	router.POST("/api/config", api.Config)
 	router.POST("/api/enroll", api.Enroll)
-	router.POST("/api/log", stubWriter)
+	router.POST("/api/log", api.AcceptLog)
 	router.POST("/api/distributed-read", stub)
 	router.POST("/api/distributed-write", stub)
 
@@ -101,6 +103,6 @@ func main() {
 	if tlsReady {
 		log.Fatal(http.ListenAndServeTLS(hostname, *cert, *key, Logger{router}))
 	} else {
-		log.Fatal(http.ListenAndServe(hostname, router))
+		log.Fatal(http.ListenAndServe(hostname, Logger{router}))
 	}
 }
