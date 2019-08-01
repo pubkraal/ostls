@@ -41,7 +41,7 @@ func stubWriter(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 func main() {
-	defaultDb := util.FirstNonEmpty(os.Getev("OSTLS_DSN"), "postgres://localhost/ostls")
+	defaultDb := util.FirstNonEmpty(os.Getenv("OSTLS_DSN"), "postgres://localhost/ostls")
 	defaultEs := util.FirstNonEmpty(os.Getenv("OSTLS_ES"), "https://localhost:9200/")
 
 	// Flags for external services
