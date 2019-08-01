@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/julienschmidt/httprouter"
 	_ "github.com/lib/pq"
@@ -43,16 +44,20 @@ func stubWriter(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func main() {
 	defaultDb := util.FirstNonEmpty(os.Getenv("OSTLS_DSN"), "postgres://localhost/ostls")
 	defaultEs := util.FirstNonEmpty(os.Getenv("OSTLS_ES"), "https://localhost:9200/")
+	defaultCert := util.FirstNonEmpty(os.Getenv("OSTLS_CERT"), "./cert.pem")
+	defaultKey := util.FirstNonEmpty(os.Getenv("OSTLS_KEY"), "./key.pem")
+	defaultPort, _ := strconv.Atoi(os.Getenv("OSTLS_PORT"))
+	defaultHost := os.Getenv("OSTLS_HOST")
 
 	// Flags for external services
 	dsn := flag.String("dsn", defaultDb, "the database DSN")
 	es := flag.String("es", defaultEs, "the connectstring for elasticsearch")
 
 	// Flags for tls/non-tls
-	cert := flag.String("cert", "./cert.pem", "valid TLS certificate for hosting https")
-	key := flag.String("key", "./key.pem", "valid TLS Private key for hosting https")
-	port := flag.Int("port", 0, "the port to host on. Leave empty to default to 80 or 443 depending on TLS config")
-	host := flag.String("host", "", "the host to listen on, leave empty for all interfaces.")
+	cert := flag.String("cert", defaultCert, "valid TLS certificate for hosting https")
+	key := flag.String("key", defaultKey, "valid TLS Private key for hosting https")
+	port := flag.Int("port", defaultPort, "the port to host on. Leave empty to default to 80 or 443 depending on TLS config")
+	host := flag.String("host", defaultHost, "the host to listen on, leave empty for all interfaces.")
 
 	// Flags for enrollment management
 	// secret := flag.String("secret", "", "the file in which the shared secret is stored.")
