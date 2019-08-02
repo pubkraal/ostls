@@ -1,10 +1,10 @@
-Urgent TODO items before this is near ready:
+# Urgent TODO items before this is near ready:
 
-* Consume config from database
 * Validate `node_key`
 * Validate enroll secret
+* Output different config for different platforms (at least windows, darwin, linux)
 
-Nice to have:
+# Nice to have
 
 * Record last contact with every host
 * Webinterface + Authentication (auth0?)
@@ -13,3 +13,8 @@ Nice to have:
 * Review distributed queries
 * Asset grouping
 * Everything else
+
+# Done!
+
+* Consume config from database
+
