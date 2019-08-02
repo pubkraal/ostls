@@ -9,43 +9,12 @@ import (
 	"github.com/pubkraal/ostls/util"
 )
 
-// This is the default configuration you can get out of osquery.conf
-// I stripped it and removed the windows specific things.
-// This should probably come out of some database configuration
-/*
-{
-  "schedule": {
-    "system_info": {
-      "query": "SELECT hostname, cpu_brand, physical_memory FROM system_info;",
-      "interval": 3600
-    }
-  },
-  "decorators": {
-    "load": [
-      "SELECT uuid AS host_uuid FROM system_info;",
-      "SELECT user AS username FROM logged_in_users ORDER BY time DESC LIMIT 1;"
-    ]
-  },
-  "packs": {
-    "osquery-monitoring": "/var/osquery/packs/osquery-monitoring.conf",
-    "incident-response": "/var/osquery/packs/incident-response.conf",
-    "it-compliance": "/var/osquery/packs/it-compliance.conf",
-    "osx-attacks": "/var/osquery/packs/osx-attacks.conf",
-    "vuln-management": "/var/osquery/packs/vuln-management.conf",
-    "hardware-monitoring": "/var/osquery/packs/hardware-monitoring.conf",
-    "ossec-rootkit": "/var/osquery/packs/ossec-rootkit.conf"
-  }
-}
-*/
-
 func Config(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	nodeKey, err := util.ExtractNodeKey(r)
 	if err != nil {
 		writeFailure(w, r)
 		return
 	}
-	// Check if request contains node key
-	// Check if node is enrolled
 	uuids := util.ConvertTokensToSet(data.ListValidTokens(dbHandle))
 	exists := uuids[nodeKey]
 	if !exists {
@@ -54,7 +23,17 @@ func Config(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 	// if none of these are true, rip node
 
-	fmt.Fprint(w, `{
+	clientConfig := data.LoadConfigByTitle("client-config", dbHandle)
+	configJson := clientConfig.Content
+	if configJson == "" {
+		configJson = defaultConfig()
+	}
+
+	fmt.Fprint(w, configJson)
+}
+
+func defaultConfig() string {
+	return `{
   "options": {
     "utc": true
   },
@@ -70,7 +49,7 @@ func Config(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
       "snapshot": true
     },
     "disk_free_space_pct": {
-      "query": "SELECT (blocks_available * 100 / blocks) AS pct FROM mounts WHERE device='/dev/disk1s1';",
+      "query": "select device, (blocks_available * 100 / blocks) as pct from mounts where type not like '%tmp%' and blocks_available > 0;",
       "interval": 3600,
       "description": "Displays the percentage of free space available on the primary disk partition",
       "snapshot": true
@@ -80,16 +59,6 @@ func Config(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
       "interval": 3600,
       "description": "System logins and logouts.",
       "removed": false
-    },
-    "chrome_extensions": {
-      "query": "SELECT * FROM users CROSS JOIN chrome_extensions USING (uid);",
-      "interval": 3600,
-      "description": "List installed Chrome Extensions for all users"
-    },
-    "safari_extensions": {
-      "query": "SELECT * FROM users CROSS JOIN safari_extensions USING (uid);",
-      "interval": 3600,
-      "description": "Safari browser extension details for all users."
     }
   },
   "decorators": {
@@ -124,8 +93,67 @@ func Config(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
           "value" : "Artifact used by this malware"
         }
       }
+    },
+	"unwanted-chrome-extensions": {
+      "platform": "windows,darwin",
+      "queries": {
+        "BetternetVPN": {
+          "query": "SELECT * FROM users JOIN chrome_extensions USING (uid) WHERE identifier='gjknjjomckknofjidppipffbpoekiipm';",
+          "interval": 3600,
+          "description": "(https://www.bleepingcomputer.com/news/security/eight-chrome-extensions-hijacked-to-deliver-malicious-code-to-4-8-million-users/)"
+        },
+        "Chrometana": {
+          "query": "SELECT * FROM users JOIN chrome_extensions USING (uid) WHERE identifier='kaicbfmipfpfpjmlbpejaoaflfdnabnc';",
+          "interval": 3600,
+          "description": "(https://www.bleepingcomputer.com/news/security/eight-chrome-extensions-hijacked-to-deliver-malicious-code-to-4-8-million-users/)"
+        },
+        "CopyFish": {
+          "query": "SELECT * FROM users JOIN chrome_extensions USING (uid) WHERE identifier='eenjdnjldapjajjofmldgmkjaienebbj';",
+          "interval": 3600,
+          "description": "(https://www.bleepingcomputer.com/news/security/copyfish-chrome-extension-hijacked-to-show-adware/)"
+        },
+        "Giphy": {
+          "query": "SELECT * FROM users JOIN chrome_extensions USING (uid) WHERE identifier='kaicbfmipfpfpjmlbpejaoaflfdnabnc';",
+          "interval": 3600,
+          "description": "(https://www.reddit.com/r/chrome/comments/6htzan/psawarning_giphy_extension_6172017_is_now_malware/)"
+        },
+        "HolaVPN": {
+          "query": "SELECT * FROM users JOIN chrome_extensions USING (uid) WHERE identifier='gkojfkhlekighikafcpjkiklfbnlmeio';",
+          "interval": 3600,
+          "description": "(http://adios-hola.org)"
+        },
+        "InfinityNewTab": {
+          "query": "SELECT * FROM users JOIN chrome_extensions USING (uid) WHERE identifier='dbfmnekepjoapopniengjbcpnbljalfg';",
+          "interval": 3600,
+          "description": "(https://www.bleepingcomputer.com/news/security/eight-chrome-extensions-hijacked-to-deliver-malicious-code-to-4-8-million-users/)"
+        },
+        "SocialFixer": {
+          "query": "SELECT * FROM users JOIN chrome_extensions USING (uid) WHERE identifier='ifmhoabcaeehkljcfclfiieohkohdgbb';",
+          "interval": 3600,
+          "description": "(https://www.bleepingcomputer.com/news/security/eight-chrome-extensions-hijacked-to-deliver-malicious-code-to-4-8-million-users/)"
+        },
+        "TouchVPN": {
+          "query": "SELECT * FROM users JOIN chrome_extensions USING (uid) WHERE identifier='bihmplhobchoageeokmgbdihknkjbknd';",
+          "interval": 3600,
+          "description": "(https://www.bleepingcomputer.com/news/security/eight-chrome-extensions-hijacked-to-deliver-malicious-code-to-4-8-million-users/)"
+        },
+        "WebDeveloper": {
+          "query": "SELECT * FROM users JOIN chrome_extensions USING (uid) WHERE identifier='bfbameneiokkgbdmiekhjnmfkcnldhhm';",
+          "interval": 3600,
+          "description": "(https://www.bleepingcomputer.com/news/security/chrome-extension-with-over-one-million-users-hijacked-to-serve-adware/)"
+        },
+        "WebPaint": {
+          "query": "SELECT * FROM users JOIN chrome_extensions USING (uid) WHERE identifier='emeokgokialpjadjaoeiplmnkjoaegng';",
+          "interval": 3600,
+          "description": "(https://www.bleepingcomputer.com/news/security/eight-chrome-extensions-hijacked-to-deliver-malicious-code-to-4-8-million-users/)"
+        },
+        "MacOSInstallCore": {
+          "query": "SELECT * FROM users JOIN chrome_extensions USING (uid) WHERE identifier='hinehnlkkmckjblijjpbpamhljokoohh';",
+          "interval": 3600,
+          "description": "(https://www.virustotal.com/#/file/5cab0821f597100dc1170bfef704d8cebaf67743e9d509e83b0b208eb630d992/detection)"
+        }
+      }
     }
   }
-}
-`)
+}`
 }
