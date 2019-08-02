@@ -57,6 +57,7 @@ func ListValidTokens(db *sql.DB) []uuid.UUID {
 	if err != nil {
 		return uuids
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var localUuid uuid.UUID
@@ -75,7 +76,8 @@ func (h *Host) Persist(db *sql.DB) {
 	if h.Id == 0 {
 		q := "insert into host (identifier, uuid, hostname, token, enrolled) VALUES ($1, $2, $3, $4, $5)"
 
-		_, err := db.Query(q, h.Identifier, h.UUID, h.Hostname, h.Token, h.Enrolled)
+		rows, err := db.Query(q, h.Identifier, h.UUID, h.Hostname, h.Token, h.Enrolled)
+		defer rows.Close()
 		if err != nil {
 			log.Println("Error storing new host: ", err)
 		}
@@ -83,7 +85,8 @@ func (h *Host) Persist(db *sql.DB) {
 		// Update
 		q := "update host set identifier=$1, hostname=$2, token=$3 where uuid=$4"
 
-		_, err := db.Query(q, h.Identifier, h.Hostname, h.Token, h.UUID)
+		rows, err := db.Query(q, h.Identifier, h.Hostname, h.Token, h.UUID)
+		defer rows.Close()
 		if err != nil {
 			log.Println("Error updating host: ", err)
 		}

@@ -30,13 +30,15 @@ func LoadConfigByTitle(title string, db *sql.DB) *Config {
 
 func (c *Config) Persist(db *sql.DB) {
 	var err error
+	var rows *sql.Rows
 	if c.Id == 0 {
 		q := "insert into config (title, content) VALUES ($1, $2);"
-		_, err = db.Query(q, c.Title, c.Content)
+		rows, err = db.Query(q, c.Title, c.Content)
 	} else {
 		q := "update config set title=$1, content=$2 where id=$3;"
-		_, err = db.Query(q, c.Title, c.Content, c.Id)
+		rows, err = db.Query(q, c.Title, c.Content, c.Id)
 	}
+	defer rows.Close()
 	if err != nil {
 		log.Println("Error persisting config: ", err)
 	}
