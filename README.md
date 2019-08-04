@@ -19,6 +19,14 @@ This is the table code by the way:
     CREATE UNIQUE INDEX host_pkey ON host(id int4_ops);
     CREATE INDEX ix_token ON host(token uuid_ops);
 
+    CREATE TABLE config (
+        id SERIAL PRIMARY KEY,
+        title text UNIQUE,
+        content text
+    );
+
+    CREATE UNIQUE INDEX config_pkey ON config(id int4_ops);
+    CREATE UNIQUE INDEX config_title_key ON config(title text_ops);
 
 Also, I still don't really trust running code specific webservers etc so
 typically I'd just let this run and listen on localhost only, while
