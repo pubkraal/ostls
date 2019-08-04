@@ -21,7 +21,6 @@ func Config(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		writeFailure(w, r)
 		return
 	}
-	// if none of these are true, rip node
 
 	clientConfig := data.LoadConfigByTitle("client-config", dbHandle)
 	configJson := clientConfig.Content
