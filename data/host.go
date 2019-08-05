@@ -72,6 +72,19 @@ func ListValidTokens(db *sql.DB) []uuid.UUID {
 	return uuids
 }
 
+func VerifyToken(token string, db *sql.DB) bool {
+	q := db.QueryRow("select id from host where token = $1", token)
+	var host string
+	err := q.Scan(&host)
+	if err == sql.ErrNoRows {
+		return false
+	} else if err == nil {
+		return true
+	}
+	log.Println("Had an unexpected error in VerifyToken", err)
+	return false
+}
+
 func (h *Host) Persist(db *sql.DB) {
 	if h.Id == 0 {
 		q := "insert into host (identifier, uuid, hostname, token, enrolled) VALUES ($1, $2, $3, $4, $5)"

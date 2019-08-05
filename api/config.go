@@ -15,9 +15,9 @@ func Config(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		writeFailure(w, r)
 		return
 	}
-	uuids := util.ConvertTokensToSet(data.ListValidTokens(dbHandle))
-	exists := uuids[nodeKey]
+	exists := data.VerifyToken(nodeKey, dbHandle)
 	if !exists {
+		w.WriteHeader(401)
 		writeFailure(w, r)
 		return
 	}

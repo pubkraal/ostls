@@ -11,6 +11,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/julienschmidt/httprouter"
+	"github.com/pubkraal/ostls/data"
 )
 
 type LogRequest struct {
@@ -37,7 +38,20 @@ func AcceptLog(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			return
 		}
 
-		// TODO: verify node key
+		exists := data.VerifyToken(logReq.NodeKey, dbHandle)
+		if !exists {
+			w.WriteHeader(401)
+			writeFailure(w, r)
+			return
+		}
+
+		/*
+			if logReq.LogType == "status" {
+				// Check if message is TLS/HTTPS POST because we don't want those
+				fmt.Fprintf(w, "{}")
+				return
+			}
+		*/
 
 		// Create one message for ES per blob item
 		var dataBlob []byte
