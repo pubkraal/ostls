@@ -6,12 +6,12 @@
 
 # Nice to have
 
-* Record last contact with every host
 * Webinterface + Authentication (auth0?)
 * Some interface to review all assets
 * Distributed queries
 * Review distributed queries
 * Asset grouping
+* Record last contact with every host
 * Everything else
 
 # Done!

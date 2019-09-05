@@ -103,6 +103,8 @@ func main() {
 	router.POST("/api/carve-init", stub)
 	router.POST("/api/carve-block", stub)
 
+	router.GET("/api/hosts", api.HostsList)
+
 	if *port == 0 {
 		if tlsReady {
 			*port = 443
